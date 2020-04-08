@@ -94,15 +94,30 @@ class Nest extends Auth {
         switch(type.toUpperCase()) {
             case 'EVENT':
             case 'EVENTS':
-                this._eventsObservable.subscribe(observer);
+                this._subscribedEventsObservable = this._eventsObservable.subscribe(observer);
                 break;
             case 'SNAPSHOT':
             case 'SNAPSHOTS':
-                this._latestSnapshotObservable.subscribe(observer);
+                this._subscribedSnapshotObservable = this._latestSnapshotObservable.subscribe(observer);
                 break;
             default:
                 console.log(chalk.yellow(`[WARN] No known event listeners to subscribe to for input: ${type}. Use either "event" or "snapshot".`));
         }
+    }
+
+    /**
+     * Unsubscribes from a stream
+     * @param type String type of stream to unsubscribe from. Can either be "event" or "snapshot"
+     */
+    unsubscribe(type) {
+        if(typeof type === 'undefined' || type == null) {
+            throw new Error('You must specify the type of string to unsubscribe from. Either "event", or "snapshot".');
+        }
+        if(type.toUpperCase() !== 'EVENT' && type.toUpperCase() !== 'SNAPSHOT') {
+            throw new Error('You must specify a type of event to unsubscribe from either: "event" or "snapshot"');
+        }
+        DEBUG && console.log(chalk.green('[DEBUG] Unsubscribing from stream of type: '), chalk.blue(type));
+        type.toUpperCase() === 'EVENT' ? this._subscribedEventsObservable.unsubscribe() : this._subscribedSnapshotObservable.unsubscribe();
     }
 
     /**
@@ -142,7 +157,12 @@ class Nest extends Auth {
         }
     };
 
-    async saveLatestSnapshot(path) {
+    /**
+     * Saves the latest snapshot that is available from the camera to a specified location
+     * @param path String the location where the latest snapshot image should be saved.
+     * @returns {Promise<unknown>}
+     */
+    async saveLatestSnapshot(path = path.join(__dirname, '..', 'assets', `snap_${moment().format('YYYY-mm-dd_hh:mm:ss.SSS')}.jpg`)) {
         const options = {
             'method': 'GET',
             'url': `${config.urls.NEXUS_HOST}${config.endpoints.LATEST_IMAGE_ENDPOINT}`,
@@ -170,11 +190,12 @@ class Nest extends Auth {
 
     /**
      * Retrieves a single snapshot image and writes it to disk
-     * @param id String image id to retrieve. Will be postfixed with *-labs and prefixed with a unix time
+     * @param id String image id to retrieve. Will be post fixed with *-labs and prefixed with a unix time
      * stamp in seconds.
+     * @param path String the path where the image should be saved
      * @returns Promise
      */
-    saveSnapshot(id) {
+    saveSnapshot(id, path = path.join(__dirname, '..', 'assets', `snap_${moment().format('YYYY-mm-dd_hh:mm:ss.SSS')}.jpg`)) {
         if(!this.jwtToken) {
             throw new Error('JWT token is null or undefined. Call #fetchJwtToken() to retrieve new json web token.');
         }
@@ -185,12 +206,11 @@ class Nest extends Auth {
                 'Authorization': `Basic ${this.jwtToken}`
             }
         };
-        const imagePath = path.join(__dirname, '..', 'assets', `snap_${moment().format('YYYY-mm-dd_hh:mm:ss.SSS')}.jpg`);
-        DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to save snapshot with the id: '), chalk.blue(id), chalk.green(' to the location: '), chalk.blue(imagePath));
+        DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to save snapshot with the id: '), chalk.blue(id), chalk.green(' to the location: '), chalk.blue(path));
         return new Promise((res, rej) => {
             try {
-                request(options).pipe(fs.createWriteStream(imagePath)).on('close', () => {
-                    res(imagePath);
+                request(options).pipe(fs.createWriteStream(path)).on('close', () => {
+                    res(path);
                 });
             } catch(err) {
                 console.log(chalk.red('[ERROR] Failed to retrieve snapshots from the Nest API: ', err));
