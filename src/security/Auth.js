@@ -1,5 +1,7 @@
 const request = require('request-promise-native');
+const chalk = require('chalk');
 const { config } = require('../constants');
+const { DEBUG } = process.env;
 
 /**
  * Auth.js
@@ -27,6 +29,7 @@ class Auth {
      * @returns {Promise<void>}
      */
     async refreshTokens() {
+        DEBUG && console.log(chalk.green('[DEBUG] Attempting to refresh OAuth & JWT tokens...'));
         try {
             this._accessToken = await this.fetchOAuthToken();
             this._jwtToken = await this.fetchJwtToken(this._accessToken);
@@ -42,9 +45,9 @@ class Auth {
     async fetchOAuthToken() {
         if(this._accessToken) return this._accessToken;
         const options = {
-            'method': 'POST',
-            'url': config.urls.OAUTH_URL,
-            'headers': {
+            method: 'POST',
+            url: config.urls.OAUTH_URL,
+            headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 'Host': 'oauth2.googleapis.com'
             },
@@ -54,6 +57,7 @@ class Auth {
                 'grant_type': 'refresh_token'
             }
         };
+        DEBUG && console.log(chalk.green('[DEBUG] Attempting to Fetch OAuth access_token from URL: ', chalk.blue(options.url)));
         try {
             const { access_token } = JSON.parse(await request(options));
             this._accessToken = access_token;
@@ -72,10 +76,10 @@ class Auth {
     async fetchJwtToken(accessToken) {
         if(this._jwtToken) return this._jwtToken;
         const options = {
-            'method': 'POST',
-            'url': config.urls.JWT_TOKEN_URL,
-            'headers': {
-                'x-goog-api-key': API_KEY,
+            method: 'POST',
+            url: config.urls.JWT_TOKEN_URL,
+            headers: {
+                'x-goog-api-key': config.secret.apiKey,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'Host': 'nestauthproxyservice-pa.googleapis.com',
@@ -88,6 +92,7 @@ class Auth {
                 "embed_google_oauth_access_token": "true"
             }),
         };
+        DEBUG && console.log(chalk.green('[DEBUG] Attempting to Fetch JWT token from URL: ', chalk.blue(options.url)));
         try {
             const { jwt } = JSON.parse(await request(options));
             this._jwtToken = jwt;

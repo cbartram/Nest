@@ -1,11 +1,16 @@
+const {
+    NEST_ID,
+    REFRESH_TOKEN,
+    CLIENT_ID,
+    API_KEY,
+    DEBUG,
+} = process.env;
+const fs = require('fs');
+const path = require('path');
+const { from, interval, Subject } = require('rxjs');
 const request = require('request-promise-native');
 const moment = require('moment');
 const chalk = require('chalk');
-const fs = require('fs');
-const path = require('path');
-const { config } = require('./constants');
-const Auth = require('./security/Auth');
-const { from, interval, Subject } = require('rxjs');
 const {
     switchMap,
     takeWhile,
@@ -14,6 +19,8 @@ const {
     multicast,
     refCount,
 } = require('rxjs/operators');
+const { config } = require('./constants');
+const Auth = require('./security/Auth');
 
 /**
  * Class which exposes several features on the Nest Camera API
@@ -48,7 +55,16 @@ class Nest extends Auth {
         );
     }
 
+    /**
+     * Checks for required fields and initilizes the access and JWT tokens needed
+     * to call the API
+     * @returns {Promise<Nest>}
+     */
     async init() {
+        if(!NEST_ID) throw new Error('The environmental variable: NEST_ID is not defined.');
+        if(!REFRESH_TOKEN) throw new Error('The environmental variable: REFRESH_TOKEN is not defined.');
+        if(!CLIENT_ID) throw new Error('The environmental variable: CLIENT_ID is not defined.');
+        if(!API_KEY) throw new Error('The environmental variable: API_KEY is not defined.');
         await this.refreshTokens();
         return this;
     }
@@ -63,7 +79,7 @@ class Nest extends Auth {
      * @param onComplete Function called when the subscriber no longer wishes to receive events.
      */
     subscribe(onEvent, type, onError = () => {}, onComplete = () => {}) {
-        console.log(chalk.green('[INFO] Creating Subscription for Observable of type:'), chalk.blue(type));
+        DEBUG && console.log(chalk.green('[DEBUG] Creating Subscription for Observable of type:'), chalk.blue(type));
         const observer = {
             next(data) {
                 onEvent(data)
@@ -106,7 +122,6 @@ class Nest extends Auth {
         if(start) query += `?start_time=${start}`;
         if(end) query += `&end_time=${end}`;
 
-
         const options = {
             'method': 'GET',
             'url': `${config.urls.NEXUS_HOST}${config.endpoints.EVENTS_ENDPOINT}${query}`,
@@ -115,13 +130,14 @@ class Nest extends Auth {
             }
         };
         try {
+            DEBUG && console.log(chalk.green('[DEBUG] Making Http request to retrieve all events to url: '), chalk.blue(options.url), chalk.green('between start time: '), chalk.blue(start), chalk.green('and end time: '), chalk.blue(end));
             return new Promise((res, rej) => {
                 request(options)
                     .then(response => res(JSON.parse(response)))
                     .catch(err => rej(err));
             });
         } catch(e) {
-            console.log('[ERROR] Failed to retrieve events from the Nest API Refreshing OAuth & JWT Tokens: ', e);
+            console.log(chalk.red('[ERROR] Failed to retrieve events from the Nest API Refreshing OAuth & JWT Tokens: ', e));
             this.refreshTokens();
         }
     };
@@ -135,18 +151,19 @@ class Nest extends Auth {
             }
         };
         try {
+            DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to save latest snapshot to the location: '), chalk.blue(path));
             return new Promise((res, rej) => {
                 try {
                     request(options).pipe(fs.createWriteStream(path)).on('close', () => {
                         res(path);
                     });
                 } catch(err) {
-                    console.log('[ERROR] Failed to retrieve snapshots from the Nest API: ', err);
+                    console.log(chalk.red('[ERROR] Failed to retrieve snapshots from the Nest API: ', err));
                     rej(err);
                 }
             });
         } catch(e) {
-            console.log('[ERROR] Failed to retrieve snapshots from the Nest API Refreshing OAuth & JWT Tokens: ', e);
+            console.log(chalk.red('[ERROR] Failed to retrieve snapshots from the Nest API Refreshing OAuth & JWT Tokens: ', e));
             this.refreshTokens()
         }
     }
@@ -157,7 +174,7 @@ class Nest extends Auth {
      * stamp in seconds.
      * @returns Promise
      */
-    getSnapshot(id) {
+    saveSnapshot(id) {
         if(!this.jwtToken) {
             throw new Error('JWT token is null or undefined. Call #fetchJwtToken() to retrieve new json web token.');
         }
@@ -169,13 +186,14 @@ class Nest extends Auth {
             }
         };
         const imagePath = path.join(__dirname, '..', 'assets', `snap_${moment().format('YYYY-mm-dd_hh:mm:ss.SSS')}.jpg`);
+        DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to save snapshot with the id: '), chalk.blue(id), chalk.green(' to the location: '), chalk.blue(imagePath));
         return new Promise((res, rej) => {
             try {
                 request(options).pipe(fs.createWriteStream(imagePath)).on('close', () => {
                     res(imagePath);
                 });
             } catch(err) {
-                console.log('[ERROR] Failed to retrieve snapshots from the Nest API: ', err);
+                console.log(chalk.red('[ERROR] Failed to retrieve snapshots from the Nest API: ', err));
                 rej(err);
             }
         });
