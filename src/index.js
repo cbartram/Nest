@@ -49,7 +49,7 @@ class Nest extends Auth {
     }
 
     async init() {
-        this.refreshTokens();
+        await this.refreshTokens();
         return this;
     }
 

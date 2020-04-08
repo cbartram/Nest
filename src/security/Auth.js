@@ -1,6 +1,5 @@
 const request = require('request-promise-native');
 const { config } = require('../constants');
-const { API_KEY, CLIENT_ID, REFRESH_TOKEN } = process.env;
 
 /**
  * Auth.js
@@ -17,10 +16,16 @@ class Auth {
     get accessToken() {
         return this._accessToken;
     }
+
     get jwtToken() {
         return this._jwtToken;
     }
 
+    /**
+     * Convenience function to refresh both the OAuth access_token and the JWT token used to call
+     * the nest camera API's. The access_token is used as input to retrieve a JWT token.
+     * @returns {Promise<void>}
+     */
     async refreshTokens() {
         try {
             this._accessToken = await this.fetchOAuthToken();
@@ -44,8 +49,8 @@ class Auth {
                 'Host': 'oauth2.googleapis.com'
             },
             form: {
-                'refresh_token': REFRESH_TOKEN,
-                'client_id': CLIENT_ID,
+                'refresh_token': config.secret.refreshToken,
+                'client_id': config.secret.clientId,
                 'grant_type': 'refresh_token'
             }
         };

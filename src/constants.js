@@ -1,4 +1,10 @@
-const { NEST_ID, PHONE_NUMBER } = process.env;
+const {
+    NEST_ID,
+    REFRESH_TOKEN,
+    CLIENT_ID,
+    API_KEY,
+    PHONE_NUMBER
+} = process.env;
 
 const config = {
     urls: {
@@ -10,6 +16,11 @@ const config = {
         EVENTS_ENDPOINT: `/cuepoint/${NEST_ID}/2`,
         SNAPSHOT_ENDPOINT: `/event_snapshot/${NEST_ID}/?crop_type=timeline&width=700`,
         LATEST_IMAGE_ENDPOINT: `/get_image?width=640&uuid=${NEST_ID}`
+    },
+    secret: {
+        refreshToken: REFRESH_TOKEN,
+        clientId: CLIENT_ID,
+        apiKey: API_KEY,
     },
     aws: {
         s3: {
