@@ -10,7 +10,10 @@ const { DEBUG } = process.env;
  */
 class Auth {
 
-    constructor() {
+    constructor(options) {
+        config.nestId = options.nestId;
+        config.secrets = { ...options };
+        this._config = config;
         this._accessToken = null;
         this._jwtToken = null;
     }
@@ -21,6 +24,10 @@ class Auth {
 
     get jwtToken() {
         return this._jwtToken;
+    }
+
+    get config() {
+        return this._config;
     }
 
     /**
@@ -46,14 +53,14 @@ class Auth {
         if(this._accessToken) return this._accessToken;
         const options = {
             method: 'POST',
-            url: config.urls.OAUTH_URL,
+            url: this._config.urls.OAUTH_URL,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 'Host': 'oauth2.googleapis.com'
             },
             form: {
-                'refresh_token': config.secret.refreshToken,
-                'client_id': config.secret.clientId,
+                'refresh_token': this._config.secrets.refreshToken,
+                'client_id': this._config.secrets.clientId,
                 'grant_type': 'refresh_token'
             }
         };
@@ -77,9 +84,9 @@ class Auth {
         if(this._jwtToken) return this._jwtToken;
         const options = {
             method: 'POST',
-            url: config.urls.JWT_TOKEN_URL,
+            url: this._config.urls.JWT_TOKEN_URL,
             headers: {
-                'x-goog-api-key': config.secret.apiKey,
+                'x-goog-api-key': this._config.secrets.apiKey,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'Host': 'nestauthproxyservice-pa.googleapis.com',

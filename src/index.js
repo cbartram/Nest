@@ -19,7 +19,6 @@ const {
     multicast,
     refCount,
 } = require('rxjs/operators');
-const { config } = require('./constants');
 const Auth = require('./security/Auth');
 
 /**
@@ -31,13 +30,23 @@ class Nest extends Auth {
      * Constructs a new Nest class. This creates an observable which can be polled
      * at a specified interval to retrieve the latest image from the Nest camera.
      * subscribers.
+     * @param options Object A set of options which are required and contain various configuration for the program
      * @param snapshotSubscriptionInterval Integer the amount of time between executions of the observable when a new
      * subscriber subscribes. Defaults to 5 seconds
      * @param eventSubscriptionInterval Integer The amount of time between executions of the event observable when
      * a new subscriber subscribes. Defaults to 3 seconds.
      */
-    constructor(snapshotSubscriptionInterval = 5000, eventSubscriptionInterval = 3000) {
-        super();
+    constructor(options = { nestId: null, refreshToken: null, apiKey: null,  clientId: null }, snapshotSubscriptionInterval = 5000, eventSubscriptionInterval = 3000) {
+        if(options === null) throw new Error('The options argument cannot be null. It must include properties: nestId, refreshToken, apiKey, clientId');
+        if(Object.keys(options) < 4) throw new Error('You must have at least the following four properties: nestId, refreshToken, apiKey, clientId');
+        if(!options.nestId) throw new Error('The property: nestId is not defined.');
+        if(!options.refreshToken) throw new Error('The property: refreshToken is not defined.');
+        if(!options.apiKey) throw new Error('The property: apiKey is not defined.');
+        if(!options.clientId) throw new Error('The environmental variable: clientId is not defined.');
+
+        super(options);
+        this._id = options.nestId;
+
         const latestSnapshotSubject = new Subject();
         const eventSubject = new Subject();
         this._latestSnapshotObservable = interval(snapshotSubscriptionInterval).pipe(
@@ -56,15 +65,11 @@ class Nest extends Auth {
     }
 
     /**
-     * Checks for required fields and initilizes the access and JWT tokens needed
+     * Checks for required fields and initializes the access and JWT tokens needed
      * to call the API
      * @returns {Promise<Nest>}
      */
     async init() {
-        if(!NEST_ID) throw new Error('The environmental variable: NEST_ID is not defined.');
-        if(!REFRESH_TOKEN) throw new Error('The environmental variable: REFRESH_TOKEN is not defined.');
-        if(!CLIENT_ID) throw new Error('The environmental variable: CLIENT_ID is not defined.');
-        if(!API_KEY) throw new Error('The environmental variable: API_KEY is not defined.');
         await this.refreshTokens();
         return this;
     }
@@ -139,7 +144,7 @@ class Nest extends Auth {
 
         const options = {
             'method': 'GET',
-            'url': `${config.urls.NEXUS_HOST}${config.endpoints.EVENTS_ENDPOINT}${query}`,
+            'url': `${this.config.urls.NEXUS_HOST}${this.config.endpoints.getEventsEndpoint(this._id)}${query}`,
             'headers': {
                 'Authorization': `Basic ${this.jwtToken}`
             }
@@ -160,12 +165,12 @@ class Nest extends Auth {
     /**
      * Saves the latest snapshot that is available from the camera to a specified location
      * @param path String the location where the latest snapshot image should be saved.
-     * @returns {Promise<unknown>}
+     * @returns {Promise<any>}
      */
     async saveLatestSnapshot(path = path.join(__dirname, '..', 'assets', `snap_${moment().format('YYYY-mm-dd_hh:mm:ss.SSS')}.jpg`)) {
         const options = {
             'method': 'GET',
-            'url': `${config.urls.NEXUS_HOST}${config.endpoints.LATEST_IMAGE_ENDPOINT}`,
+            'url': `${this.config.urls.NEXUS_HOST}${this.config.endpoints.getLatestImageEndpoint(this._id)}`,
             'headers': {
                 'Authorization': `Basic ${this.jwtToken}`
             }
@@ -201,7 +206,7 @@ class Nest extends Auth {
         }
         const options = {
             'method': 'GET',
-            'url': `${config.urls.NEXUS_HOST}${config.endpoints.SNAPSHOT_ENDPOINT}${id}?crop_type=timeline&width=300`,
+            'url': `${this.config.urls.NEXUS_HOST}${this.config.endpoints.getSnapshotEndpoint(this._id)}${id}?crop_type=timeline&width=300`,
             'headers': {
                 'Authorization': `Basic ${this.jwtToken}`
             }

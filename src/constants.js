@@ -1,8 +1,4 @@
 const {
-    NEST_ID,
-    REFRESH_TOKEN,
-    CLIENT_ID,
-    API_KEY,
     PHONE_NUMBER
 } = process.env;
 
@@ -13,15 +9,13 @@ const config = {
         NEXUS_HOST: 'https://nexusapi-us1.dropcam.com'
     },
     endpoints: {
-        EVENTS_ENDPOINT: `/cuepoint/${NEST_ID}/2`,
-        SNAPSHOT_ENDPOINT: `/event_snapshot/${NEST_ID}/?crop_type=timeline&width=700`,
-        LATEST_IMAGE_ENDPOINT: `/get_image?width=640&uuid=${NEST_ID}`
+        getEventsEndpoint: (id) => `/cuepoint/${id}/2`,
+        getSnapshotEndpoint: (id) => `/event_snapshot/${this.nestId}/?crop_type=timeline&width=700`,
+        getLatestImageEndpoint: (id) => `/get_image?width=640&uuid=${this.nestId}`
     },
-    secret: {
-        refreshToken: REFRESH_TOKEN,
-        clientId: CLIENT_ID,
-        apiKey: API_KEY,
-    },
+    // This field will be populated by the configuration object which is supplied
+    // to the Nest() constructor
+    secrets: {},
     aws: {
         s3: {
             bucket: 'BUCKET_NAME_HERE'
