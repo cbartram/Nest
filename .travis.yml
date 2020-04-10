@@ -1,33 +1,39 @@
-# @file .travis.yml
-# This file serves as the configuration for the main CI/CD pipeline
-# for the Ignite-API
 language: node_js
 node_js:
-  - '12'
+- '12'
+
 env:
   global:
-    - PATH=~/bin:$PATH
+  - PATH=~/bin:$PATH
 
-# Configures the sonarqube (sonarcloud) static code scan
 addons:
   sonarcloud:
     organization: cbartram-github
 
 install: npm install
 
-# Run the static tests on every commit
 script:
-  - DEBUG=false NODE_ENV=test npm test
-  - DEBUG=false NODE_ENV=test npm run coverage
-  - sh ./scripts/coding_style_tests.sh
-  - sonar-scanner
+- DEBUG=false NODE_ENV=test npm test
+- DEBUG=false NODE_ENV=test npm run coverage
+- sh ./scripts/coding_style_tests.sh
+#- sonar-scanner
 
-# Cache node_modules npm and sonar for faster builds
+deploy:
+  provider: npm
+  email: cbartram3@gmail.com
+  api_key:
+    secure: LMIFI2wzK6m7ySBGaVFMK6d00AirB9fT84mVzAThVR+QpWftYmTPkvVRCkBNTMKoZ2wTDNhU18m3DEbjUxv4gFe6g8e3j4AZZTSq4svr8Ei3t9PGRJ8VN2hI4SqDCuI/Z5cpGz8BlHu6W1TQKAgKIz64yIHwEA8ajThL4YPGQ6KX8MUoidFBoz1gJusCUbrO1SEYPOiU8pBMme73cWeQmFEVGDwgRjhcIxD2lR12iHGGsuRLcBTP55pLSsRU00BWyaEW5kVAKA+ufcwa1uTVSygtFoaKfQTnBh/KR9+pTmdcVQsOvdJyizB2i+oxb5K8yHWXlGsLA8UkfOUAMX0CEr322RSxmeQhPS2R9FkqVdCpVB+RAoGAUp3snDfGkUYu326eUJWji2BpPJkV51LvenDjtU0194MJjllD7utCXdqV9s15260GMqni8NBdXd4+4b33ATrVDybY+BGDUs1JwkKe6Yt4pug73prqTiYwBxYyvYiwD+3MAlrBCswejfhAYUD43FmqIPiZxNPVW+9aNdxno2/VxRoca6EU5/aVDVt9HCDxooUISo7XDnPQK/iS9RaaIokedj9o7ruo2F8xq/CAIHnh7nmEKA3ru5YFcnSGiua3o/6iloabfQs4VR7+Xw+8xrfFGhi/mnaePrVnDtW9JVWJwyzbFnn4PSvxaoo=
+  on:
+    tags: true
+    repo: cbartram/Nest
+    branch: master
+
 cache:
   directories:
-    - "$HOME/.npm"
-    - "./node_modules"
-    - "$HOME/.sonar/cache"
+  - "$HOME/.npm"
+  - "./node_modules"
+  - "$HOME/.sonar/cache"
 
 notifications:
   email: false
+
