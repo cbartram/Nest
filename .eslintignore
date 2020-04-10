@@ -1,0 +1,7 @@
+node_modules/
+build/
+.idea
+*.iml
+.env
+*-lock.json
+README.md
