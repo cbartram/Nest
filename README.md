@@ -142,6 +142,53 @@ Finally your API key can be located by:
 
 That's it your done!
 
+## About the SDK
+
+This section describes how to use the Nest SDK to retrieve images, fetch events, and stream data
+from your Nest camera.
+
+### Initializing the SDK
+
+You **must** call the `init()` method after initializing the Nest SDK. The init method will fetch your OAuth access_token and JWT token
+used to retrieve data from the Nest API the other functions within the SDK.
+
+### Events
+
+The Nest SDK works around events. An event is logged by your Nest camera whenever it detects motion or sound. You can periodically
+fetch Nest events through the API or subscribe to the event stream and be notified when a new event arrives.
+
+The event object looks like this:
+
+```javascript
+ {
+    "playback_time": 1586551361730,
+    "start_time": 1586551361730,
+    "camera_uuid": "<Your Nest Id>",
+    "face_id": "",
+    "is_important": false,
+    "face_category": "UNSET",
+    "end_time": 1586551371619,
+    "importance": 0,
+    "face_name": "",
+    "in_progress": false,
+    "id": "1586551361-labs",
+    "zone_ids": [],
+    "types": ["motion"]
+}
+```
+
+### Streaming Events
+
+The streaming interface for the Nest SDK is built on top of Reactive programming and [RxJS](https://rxjs-dev.firebaseapp.com/). It uses [Observables](https://rxjs-dev.firebaseapp.com/guide/observable) as the fundamental unit to 
+stream Nest camera data directly to your applications. Events are streamed using the `nest.subscribe()` method. You must specify the event type you wish to subscribe to either "event" or "snapshot".
+
+You can poll for two different types of data:
+
+- Snapshots - The latest snapshot image from the Nest camera
+- Events - The latest JSON event from the Nest API 
+
+Under the hood the streaming Observables will poll the Nest API at regular intervals for updates on new events (using you guessed it `getEvents()`)! You can configure how often
+the observables poll the Nest API by passing values into the Nest constructor at start up. The values default to five seconds for snapshots and three seconds for events.
 
 ## Examples
 
@@ -149,17 +196,103 @@ Here are some helpful examples to get you started.
 
 ### Fetching Camera Events
 
+You can fetch all the latest events for your camera using the snippet below. You can also specify a start and end
+time as parameters to the `getEvents()` method. For example `nest.getEvents('1586551371619', '1586551374320')`
+
+```javascript
+const Nest = require('nest-cam');
+
+const nest = new Nest({
+    nestId: "YOUR_NEST_ID",
+    refreshToken: "YOUR_REFRESH_TOKEN",
+    apiKey: "YOUR_API_KEY",
+    clientId: "YOUR_CLIENT_ID"
+});
+
+nest.init().then(() => {
+    nest.getEvents().then(events => {
+        ...
+    }).catch(err => console.log('Failed to fetch events: ', err));
+});
+```
 
 ### Streaming Camera Events
 
+```javascript
+const Nest = require('nest-cam');
+
+const nest = new Nest({
+    nestId: "YOUR_NEST_ID",
+    refreshToken: "YOUR_REFRESH_TOKEN",
+    apiKey: "YOUR_API_KEY",
+    clientId: "YOUR_CLIENT_ID"
+});
+
+nest.init().then(() => {
+    nest.subscribe('event', (event) => {
+        ...
+    })
+});
+```
 
 ### Fetching Latest Image
 
+```javascript
+const Nest = require('nest-cam');
+
+const nest = new Nest({
+    nestId: "YOUR_NEST_ID",
+    refreshToken: "YOUR_REFRESH_TOKEN",
+    apiKey: "YOUR_API_KEY",
+    clientId: "YOUR_CLIENT_ID"
+});
+
+nest.init().then(() => {
+    nest.saveLatestSnapshot('/path/to/image.jpg').then((path) => {
+        // ... image saved successfully 
+    });
+});
+```
 
 ### Fetching Event Image
 
+```javascript
+const Nest = require('nest-cam');
+
+const nest = new Nest({
+    nestId: "YOUR_NEST_ID",
+    refreshToken: "YOUR_REFRESH_TOKEN",
+    apiKey: "YOUR_API_KEY",
+    clientId: "YOUR_CLIENT_ID"
+});
+
+nest.init().then(() => {
+    // 1586551361-labs comes from an event.id property
+    nest.saveSnapshot('1586551361-labs', '/Path/to/save/file.jpg').then(() => {
+        // image saved successfully
+    })
+});
+```
 
 ### Streaming Live Camera Images
+
+```javascript
+const Nest = require('nest-cam');
+const fs = require('fs');
+
+const nest = new Nest({
+    nestId: "YOUR_NEST_ID",
+    refreshToken: "YOUR_REFRESH_TOKEN",
+    apiKey: "YOUR_API_KEY",
+    clientId: "YOUR_CLIENT_ID"
+});
+
+nest.init().then(() => {
+    nest.subscribe('snapshot', (imageData) => {
+        fs.writeFileSync('/Users/data/image/', imageData);
+    })
+});
+```
 
 ## Running the tests
 
