@@ -13,6 +13,7 @@ addons:
 install: npm install
 
 script:
+- npm run build
 - DEBUG=false NODE_ENV=test npm test
 - DEBUG=false NODE_ENV=test npm run coverage
 - sh ./scripts/coding_style_tests.sh
