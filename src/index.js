@@ -42,7 +42,7 @@ class Nest extends Auth {
         if(!options.nestId) throw new Error('The property: nestId is not defined.');
         if(!options.refreshToken) throw new Error('The property: refreshToken is not defined.');
         if(!options.apiKey) throw new Error('The property: apiKey is not defined.');
-        if(!options.clientId) throw new Error('The environmental variable: clientId is not defined.');
+        if(!options.clientId) throw new Error('The property: clientId is not defined.');
 
         super(options);
         this._id = options.nestId;
@@ -83,7 +83,7 @@ class Nest extends Auth {
      * @param onError Function called when an error occurs during the processing of an event
      * @param onComplete Function called when the subscriber no longer wishes to receive events.
      */
-    subscribe(onEvent, type, onError = () => {}, onComplete = () => {}) {
+    subscribe(type, onEvent, onError = () => {}, onComplete = () => {}) {
         DEBUG && console.log(chalk.green('[DEBUG] Creating Subscription for Observable of type:'), chalk.blue(type));
         const observer = {
             next(data) {
