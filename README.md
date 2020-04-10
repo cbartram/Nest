@@ -101,6 +101,66 @@ and switch it on to enable full trust for it (More information about this change
 
 Done!
 
+### Capturing Nest Traffic
+
+Now that you have your iOS/Android device configured to route traffic through the Charles Proxy you are ready to start intercepting Nest camera requests to
+locate your credentials!
+
+#### Nest ID
+
+The Nest Id is easy to find. Fire up your Nest App on your phone and watch Charles Proxy capture the traffic! 
+
+Make sure you:
+
+- Set your Charles Proxy to use "Sequence". This ensures you see requests in the order they were sent
+- Filter for the word "nexus". This will get rid of requests you dont care about (there will be a lot of them)
+
+![nest_id_proxy](./assets/nest_id_proxy.png)
+
+Your nest ID is highlighted in the picture above.
+
+#### Refresh Token & Client Id
+
+In Charles Proxy:
+
+- Filter for "google"
+- Look for the request from the host: `oauth2.googleapis.com`
+- Select "Contents" (right beneath the filter bar) to view the contents of the Http Request
+
+![refresh_client_id_charles](./assets/refresh_client_id_charles.png)
+
+Your client id and refresh token are highlighted in the picture above.
+
+#### API Key
+
+Finally your API key can be located by:
+
+- Filtering for "nestauthproxyservice"
+- It is located in the "x-goog-api-key" Header value
+
+![goog_api_key_nest](./assets/api_key_nest.png)
+
+That's it your done!
+
+
+## Examples
+
+Here are some helpful examples to get you started.
+
+### Fetching Camera Events
+
+
+### Streaming Camera Events
+
+
+### Fetching Latest Image
+
+
+### Fetching Event Image
+
+
+### Streaming Live Camera Images
+
 ## Running the tests
 
 Unit tests for this project are managed with Mocha and can be executed with:
