@@ -1,6 +1,6 @@
 {
   "name": "nest-cam",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Access the Nest API through a Reactive Node.JS Interface",
   "main": "build/main.js",
   "scripts": {
