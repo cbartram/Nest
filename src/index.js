@@ -157,6 +157,7 @@ class Nest extends Auth {
     } catch (e) {
       console.log(chalk.red('[ERROR] Failed to retrieve events from the Nest API Refreshing OAuth & JWT Tokens: ', e));
       this.refreshTokens();
+      return null;
     }
   }
 

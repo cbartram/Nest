@@ -137,7 +137,7 @@ describe('Nest Camera Tests', () => {
       clientId: 'foo',
     });
 
-    nest.subscribe('event', (event) => {
+    nest.subscribe('event', () => {
       expect(nest._subscribedEventsObservable).to.be.a('object');
       nest.unsubscribe('event');
     });
@@ -152,7 +152,7 @@ describe('Nest Camera Tests', () => {
       clientId: 'foo',
     });
 
-    nest.subscribe('snapshot', (event) => {
+    nest.subscribe('snapshot', () => {
       expect(nest._subscribedSnapshotObservable).to.be.a('object');
       nest.unsubscribe('snapshot');
     });

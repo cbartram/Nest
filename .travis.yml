@@ -1,0 +1,33 @@
+# @file .travis.yml
+# This file serves as the configuration for the main CI/CD pipeline
+# for the Ignite-API
+language: node_js
+node_js:
+  - '12'
+env:
+  global:
+    - PATH=~/bin:$PATH
+
+# Configures the sonarqube (sonarcloud) static code scan
+addons:
+  sonarcloud:
+    organization: cbartram-github
+
+install: npm install
+
+# Run the static tests on every commit
+script:
+  - DEBUG=false NODE_ENV=test npm test
+  - DEBUG=false NODE_ENV=test npm run coverage
+  - sh ./scripts/coding_style_tests.sh
+  - sonar-scanner
+
+# Cache node_modules npm and sonar for faster builds
+cache:
+  directories:
+    - "$HOME/.npm"
+    - "./node_modules"
+    - "$HOME/.sonar/cache"
+
+notifications:
+  email: false

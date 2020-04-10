@@ -6,6 +6,8 @@
   "scripts": {
     "test": "mocha ./test/index.test.js --timeout 5000 --exit",
     "start": "backpack",
+    "coverage": "CI=true NODE_ENV=test nyc --reporter=lcovonly --reporter=text ./node_modules/.bin/mocha './test/**.test.js' --timeout 10000 --exit",
+    "tag": "PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && git tag $PACKAGE_VERSION && git push --tags",
     "build": "backpack build"
   },
   "repository": {
@@ -26,7 +28,8 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.2",
-    "mocha": "^7.1.1"
+    "mocha": "^7.1.1",
+    "nyc": "^15.0.1"
   },
   "keywords": [
     "nest",
