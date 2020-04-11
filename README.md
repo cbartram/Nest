@@ -88,17 +88,17 @@ address for the device that is running the charles proxy. This is usually someth
 and there is no Authentication.
 
 **Go into your Wifi setting:**
-<img src="./assets/ios_proxy_one.png" width="600" height="800" />
+<img alt="ios_proxy_one" src="./assets/ios_proxy_one.png" width="200" height="400" />
 
 **Update your proxy**
-<img src="./assets/ios_proxy_two.png" width="600" height="800" />
+<img alt="ios_proxy_two" src="./assets/ios_proxy_two.png" width="200" height="400" />
 
 
 Open Safari and browse to [https://chls.pro/ssl](https://chls.pro/ssl). Safari will prompt you to install the SSL certificate.
 If you are on iOS 10.3 or later, open the Settings.app and navigate to General > About > Certificate Trust Settings, and find the Charles Proxy certificate, 
 and switch it on to enable full trust for it (More information about this change in iOS 10).
 
-<img src="./assets/ios_cert_trust.png" width="600" height="800" />
+<img alt="ios_proxy_three" src="./assets/ios_cert_trust.png" width="200" height="400" />
 
 Done!
 
