@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="./assets/logo.png" alt="logo" />
+</p>
+
 # Nest Camera SDK
 Access & Stream the Nest API Camera data through a Reactive Node.JS interface. 
 
@@ -88,9 +92,11 @@ address for the device that is running the charles proxy. This is usually someth
 and there is no Authentication.
 
 **Go into your Wifi setting:**
+
 <img alt="ios_proxy_one" src="./assets/ios_proxy_one.png" width="200" height="400" />
 
 **Update your proxy**
+
 <img alt="ios_proxy_two" src="./assets/ios_proxy_two.png" width="200" height="400" />
 
 
