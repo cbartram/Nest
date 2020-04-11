@@ -4,7 +4,7 @@
   "description": "Access the Nest API through a Reactive Node.JS Interface",
   "main": "build/main.js",
   "scripts": {
-    "test": "mocha ./test/index.test.js --timeout 5000 --exit",
+    "test": "mocha ./test/**.test.js --timeout 5000 --exit",
     "start": "backpack",
     "coverage": "CI=true NODE_ENV=test nyc --reporter=lcovonly --reporter=text ./node_modules/.bin/mocha './test/**.test.js' --timeout 10000 --exit",
     "tag": "PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && git tag $PACKAGE_VERSION && git push --tags",
@@ -19,6 +19,7 @@
     "chalk": "^4.0.0",
     "dotenv": "^8.2.0",
     "moment": "^2.24.0",
+    "nock": "^12.0.3",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.8",
     "rxjs": "^6.5.5"
