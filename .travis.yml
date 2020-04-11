@@ -17,7 +17,7 @@ script:
 - DEBUG=false NODE_ENV=test npm test
 - DEBUG=false NODE_ENV=test npm run coverage
 - sh ./scripts/coding_style_tests.sh
-#- sonar-scanner
+- sonar-scanner
 
 deploy:
   provider: npm

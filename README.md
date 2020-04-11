@@ -3,6 +3,10 @@
 </p>
 
 # Nest Camera SDK
+![npm](https://img.shields.io/npm/dm/nest-cam)
+![build](https://img.shields.io/travis/com/cbartram/Nest)
+![npm bundle size](https://img.shields.io/bundlephobia/min/nest-cam)
+
 Access & Stream the Nest API Camera data through a Reactive Node.JS interface. 
 
 In 2019 Google deprecated the Works With Nest program and shut down the Nest API's for new developers and pigeon hole'd the existing Nest developers
