@@ -10,7 +10,6 @@ const moment = require('moment');
 const chalk = require('chalk');
 const {
   switchMap,
-  takeWhile,
   distinctUntilChanged,
   map,
   multicast,
@@ -54,7 +53,6 @@ class Nest extends Auth {
     );
     this._eventsObservable = interval(eventSubscriptionInterval).pipe(
       switchMap(() => from(this.getEvents(moment().startOf('day').valueOf(), moment().valueOf()))),
-      takeWhile((events) => events.length >= 0),
       distinctUntilChanged((prevEvents, currEvents) => currEvents.length === prevEvents.length),
       map((events) => events[events.length - 1]),
       multicast(eventSubject),

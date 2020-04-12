@@ -6,7 +6,7 @@
 ![npm](https://img.shields.io/npm/dm/nest-cam)
 ![build](https://img.shields.io/travis/com/cbartram/Nest)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/nest-cam)
-![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=Nest-Cam&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=Nest-Cam)
+[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=Nest-Cam&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=Nest-Cam)
 ![npm](https://img.shields.io/npm/v/nest-cam)
 
 
