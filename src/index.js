@@ -46,12 +46,12 @@ class Nest extends Auth {
 
     const latestSnapshotSubject = new Subject();
     const eventSubject = new Subject();
-    this._latestSnapshotObservable = interval(snapshotSubscriptionInterval).pipe(
+    this._latestSnapshotObservable = interval(options.snapshotSubscriptionInterval || 5000).pipe(
       switchMap(() => from(this.saveLatestSnapshot())),
       multicast(latestSnapshotSubject),
       refCount(),
     );
-    this._eventsObservable = interval(eventSubscriptionInterval).pipe(
+    this._eventsObservable = interval(options.eventSubscriptionInterval || 3000).pipe(
       switchMap(() => from(this.getEvents(moment().startOf('day').valueOf(), moment().valueOf()))),
       distinctUntilChanged((prevEvents, currEvents) => currEvents.length === prevEvents.length),
       map((events) => events[events.length - 1]),
