@@ -16,14 +16,14 @@ In 2019 Google deprecated the Works With Nest program and shut down the Nest API
 to migrate their Nest account's to Google. Google integrated the Nest products under the "Works With Google" umbrella and essentially made data access to your own
 Nest devices a one way street.
 
-You can give your Nest data to Google but you can't get it back out of the cloud. I am a fan of open source IoT and I think this is pretty uncool. This Nest Camera SDK aims
+You can give your Nest data to Google but you can't get it back out of the cloud. This Nest Camera SDK aims
 aims to give developers the freedom and ability to access their own camera feed data in order to continue building great applications.
 
 ![nest denial letter](./assets/nest_denied.png)
 
 ## Quick Start
 
-To get started with the Unofficial Nest Camera API you can install the package from [NPM](https://npmjs.com): 
+To get started with the Unofficial Nest Camera SDK you can install the package from [NPM](https://npmjs.com): 
 
 ```shell script
 $ npm install nest-cam
@@ -52,7 +52,7 @@ nest.init().then(() => {
 ### Prerequisites
 
 Before you go hooking into your camera data you will need some security credentials. Check out the table below for a description
-of each credential.
+of each credential that is required.
 
 | **Name**       | **Data Type** | **Description**                                                                                                                                                                                                                                                   |
 |----------------|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -61,7 +61,8 @@ of each credential.
 | `apiKey`       | String        | This value comes with special privileges to tell the Nest servers how often the client wielding the api key can call the backend. This value will not change.                                                                                                     |
 | `clientId`     | String        | The Client Id is a unique string which is used by the Nest API to identify which client or application is calling the backend resources.                                                                                                                          |
 
-Retrieving these values can be somewhat cumbersome but I will do my best to make the process as painless as possible. 
+Retrieving these values is a one time process than can be somewhat cumbersome. Below is an in depth tutorial of each step
+with helpful images to guide you to the security credentials you need. The whole process should take less than 10 minutes! 
 
 ## Obtaining Nest Security Credentials
 
@@ -77,16 +78,19 @@ Charles to trust all SSL certificates it proxies so that we can see the request'
 
 ### Trusting the Root Charles SSL Certificate
 
-Charles generates its own certificates for sites, which it signs using a Charles Root Certificate, which is uniquely generated for your installation of Charles (as of v3.10). In order
+Charles generates its own certificates for sites, which it signs using a Charles Root Certificate. The root certificate is uniquely generated for your installation of Charles (as of v3.10). In order
 to avoid having to trust each website you visit individually you can simply trust the Charles Root Certificate one time and it will take care of everything else for you.
 
-You need to trust the certificates on your Mac/Windows and iPhone/Android
+You need to trust the same certificate on your Mac/Windows and iPhone/Android
 
 #### Mac 
 
-In Charles go to the Help menu and choose "SSL Proxying > Install Charles Root Certificate". Keychain Access will open. Find the "Charles Proxy..." entry, and double-click to get info on it. 
-Expand the "Trust" section, and beside "When using this certificate" change it from "Use System Defaults" to "Always Trust". 
-Then close the certificate info window, and you will be prompted for your Administrator password to update the system trust settings. 
+In Charles go to the Help menu and choose "SSL Proxying > Install Charles Root Certificate".
+
+ - Keychain Access will open. 
+ - Find the "Charles Proxy..." entry, and double-click to get info on it. 
+ - Expand the "Trust" section, and beside "When using this certificate" change it from "Use System Defaults" to "Always Trust". 
+ - Then close the certificate info window, and you will be prompted for your Administrator password to update the system trust settings. 
 
 ![charles trust](./assets/charles_trust.png) 
 
@@ -95,10 +99,14 @@ Then close the certificate info window, and you will be prompted for your Admini
 In order to install the Charles Trust Certificate on iOS there are a couple simple steps.
 
 Set your iOS device to use Charles as its HTTP proxy in the Settings app > Wifi settings. For the IP Address set the IP
-address for the device that is running the charles proxy. This is usually something like: `192.168.1.153`. The port will always be `8888`
+address for the device that is running the charles proxy. This is usually something like: `192.168.1.153`. You can view your Mac's network
+settings in System Preferences to locate the correct IP address. The port number will always be `8888`
 and there is no Authentication.
 
-**Go into your Wifi setting:**
+- Open Settings
+- Open Wifi
+- Select the informational "I" next to the Wifi network that your Nest camera is connected to.
+- Select Proxy Settings
 
 <img alt="ios_proxy_one" src="./assets/ios_proxy_one.png" width="200" height="400" />
 
@@ -164,7 +172,7 @@ from your Nest camera.
 ### Initializing the SDK
 
 You **must** call the `init()` method after initializing the Nest SDK. The init method will fetch your OAuth access_token and JWT token
-used to retrieve data from the Nest API the other functions within the SDK.
+used to retrieve data from the Nest API.
 
 ### Events
 
@@ -193,7 +201,7 @@ The event object looks like this:
 
 ### Streaming Events
 
-The streaming interface for the Nest SDK is built on top of Reactive programming and [RxJS](https://rxjs-dev.firebaseapp.com/). It uses [Observables](https://rxjs-dev.firebaseapp.com/guide/observable) as the fundamental unit to 
+The streaming interface for the Nest SDK is built on top of Observables using [RxJS](https://rxjs-dev.firebaseapp.com/). It uses [Observables](https://rxjs-dev.firebaseapp.com/guide/observable) as the fundamental unit to 
 stream Nest camera data directly to your applications. Events are streamed using the `nest.subscribe()` method. You must specify the event type you wish to subscribe to either "event" or "snapshot".
 
 You can poll for two different types of data:
@@ -243,10 +251,30 @@ const nest = new Nest({
 });
 
 nest.init().then(() => {
+    // Make sure you subscribe to either "event" or "snapshot"!
     nest.subscribe('event', (event) => {
         ...
     })
 });
+```
+
+You can also configure how often the Nest API is polled under the hood to publish new events to your subscription. All values 
+are in milliseconds. A lower value will poll the Nest API more often and return new events faster but will also consume more computing
+resources. We have found 3 seconds between each poll to be sufficient for most application use cases but feel free to tweak it to your needs.
+
+```javascript
+const Nest = require('nest-cam');
+
+// This will poll subscriptions to snapshots every 2 seconds (instead of 5) and subscriptions to events
+// every second (instead of 3 seconds).
+const nest = new Nest({
+    nestId: "YOUR_NEST_ID",
+    refreshToken: "YOUR_REFRESH_TOKEN",
+    apiKey: "YOUR_API_KEY",
+    clientId: "YOUR_CLIENT_ID"
+}, 2000, 1000);
+
+// ... 
 ```
 
 ### Fetching Latest Image
@@ -324,6 +352,16 @@ according to the style guide run:
 ```shell script
 $ sh ./scripts/coding_style_tests.sh
 ```
+
+### Code Coverage
+
+A new code coverage report can be generated with the following NPM command:
+
+```shell script
+$ npm run coverage
+```
+
+Code coverage output is stored in lcov format within the `coverage` directory.
 
 ## Deployment
 
