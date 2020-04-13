@@ -6,7 +6,7 @@
 ![npm](https://img.shields.io/npm/dm/nest-cam)
 ![build](https://img.shields.io/travis/com/cbartram/Nest)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/nest-cam)
-[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=Nest-Cam&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=Nest-Cam)
+[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=cbartram_Nest-Cam&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=cbartram_Nest-Cam)
 ![npm](https://img.shields.io/npm/v/nest-cam)
 
 
@@ -212,6 +212,40 @@ You can poll for two different types of data:
 Under the hood the streaming Observables will poll the Nest API at regular intervals for updates on new events (using you guessed it `getEvents()`)! You can configure how often
 the observables poll the Nest API by passing values into the Nest constructor at start up. The values default to five seconds for snapshots and three seconds for events.
 
+## Nest SDK Configuration
+
+The Nest constructor takes one parameter. The parameter is an object which contains configuration parameters to tweak the Nest SDK's behavior. 
+If no argument is provided the default options will be used. There are **four required properties** to the Nest options: Nest Id, Refresh Token, API Key, and client Id.
+Please reference the documentation above if you need help finding your nest credentials. 
+
+All other configuration options are documented below: 
+
+| **Name**       | **Data Type** | **Description**                                                                                                                                                                                                                                                   |
+|----------------|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `nestId`       | String        | A unique string which identifies your Nest Camera to the Google Nest API. This value will not change.                                                                                                                                                             |
+| `refreshToken` | String        | Nest uses OAuth 2.0 to securely authenticate users. A refresh token allows an application to obtain a new OAuth access token without prompting the user for any information. This is a long lived token which will expire but not for an estimated several weeks. |
+| `apiKey`       | String        | This value comes with special privileges to tell the Nest servers how often the client wielding the api key can call the backend. This value will not change.                                                                                                     |
+| `clientId`     | String        | The Client Id is a unique string which is used by the Nest API to identify which client or application is calling the backend resources.                                                                                                                          |  
+| `eventInterval`     | Integer       | The amount of time between polls to the Nest API when subscribing to events. A lower number will poll the API more often. Default is 3000. All values are in milliseconds                                                                                                                          |  
+| `snapshotInterval`     | Integer       | The amount of time between polls to the Nest API when subscribing to snapshots. A lower number will poll the API more often. Default is 5000. All values are in milliseconds                                                                                                                         |  
+
+```javascript
+const Nest = require('nest-cam');
+
+const options = {
+    nestId: '...',
+    clientId: '...',
+    refreshToken: '...',
+    apiKey: '...',
+    eventInterval: 9000,
+    snapshotInterval: 3000
+};
+
+let nest = new Nest(options);
+
+// nest.init() etc...
+```
+
 ## Examples
 
 Here are some helpful examples to get you started.
@@ -271,8 +305,10 @@ const nest = new Nest({
     nestId: "YOUR_NEST_ID",
     refreshToken: "YOUR_REFRESH_TOKEN",
     apiKey: "YOUR_API_KEY",
-    clientId: "YOUR_CLIENT_ID"
-}, 2000, 1000);
+    clientId: "YOUR_CLIENT_ID",
+    eventInterval: 1000,
+    snapshotInterval: 2000
+});
 
 // ... 
 ```
