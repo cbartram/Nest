@@ -1,5 +1,6 @@
-const { describe, it } = require('mocha');
+const { describe, it, beforeEach } = require('mocha');
 const { expect } = require('chai');
+const nock = require('nock');
 const Nest = require('../src/index');
 
 describe('Nest Camera Tests', () => {
@@ -37,6 +38,9 @@ describe('Nest Camera Tests', () => {
     try {
       new Nest({
         nestId: 'foo',
+        something: '',
+        else: '',
+        four: '',
       });
     } catch (err) {
       expect(err.message).to.be.a('string').that.equals('The property: refreshToken is not defined.');
@@ -49,6 +53,9 @@ describe('Nest Camera Tests', () => {
       new Nest({
         nestId: 'foo',
         refreshToken: 'foo',
+        something: '',
+        else: '',
+        four: '',
       });
     } catch (err) {
       expect(err.message).to.be.a('string').that.equals('The property: apiKey is not defined.');
@@ -62,6 +69,9 @@ describe('Nest Camera Tests', () => {
         nestId: 'foo',
         refreshToken: 'foo',
         apiKey: 'foo',
+        something: '',
+        else: '',
+        four: '',
       });
     } catch (err) {
       expect(err.message).to.be.a('string').that.equals('The property: clientId is not defined.');
@@ -188,5 +198,37 @@ describe('Nest Camera Tests', () => {
       expect(err.message).to.be.a('string').that.equals('JWT token is null or undefined. Call #fetchJwtToken() to retrieve new json web token.');
       done();
     }
+  });
+
+  it('Throws an error if object keys are less than 4 in the options', (done) => {
+    try {
+      new Nest({ one: '', two: '', three: '' });
+    } catch (err) {
+      expect(err.message).to.be.a('string').that.equals('You must have at least the following four properties: nestId, refreshToken, apiKey, clientId');
+      done();
+    }
+  });
+});
+
+describe('Mocking Camera API Tests', () => {
+  beforeEach(() => {
+    nock('https://nestauthproxyservice-pa.googleapis.com')
+      .post('/v1/issue_jwt')
+      .reply(200, {
+        jwt: 'g.0.eyJraWQiOiIyMzhiNTUxZmM',
+        claims: {
+          subject: {
+            nestId: {
+              namespaceId: {
+                id: 'nest-phoenix-prod',
+              },
+              id: '102568',
+            },
+          },
+          expirationTime: '2020-04-11T23:56:59.861Z',
+          policyId: 'authproxy-oauth-policy',
+          structureConstraint: {},
+        },
+      });
   });
 });

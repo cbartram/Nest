@@ -91,7 +91,7 @@ describe('Authentication Tests', () => {
     auth.refreshTokens().then(() => {
       expect(auth.accessToken).to.be.a('string').that.equals('ya29.a0Ae4lvC2w1OP-k2mBo9ebdW-GGCLoA1EW6s8AUgh7wLH');
       expect(auth.jwtToken).to.be.a('string').that.equals('g.0.eyJraWQiOiIyMzhiNTUxZmM');
-      auth.fetchOAuthToken().then(token => {
+      auth.fetchOAuthToken().then((token) => {
         expect(token).to.be.a('string').that.equals('ya29.a0Ae4lvC2w1OP-k2mBo9ebdW-GGCLoA1EW6s8AUgh7wLH');
         done();
       });
@@ -109,7 +109,7 @@ describe('Authentication Tests', () => {
     auth.refreshTokens().then(() => {
       expect(auth.accessToken).to.be.a('string').that.equals('ya29.a0Ae4lvC2w1OP-k2mBo9ebdW-GGCLoA1EW6s8AUgh7wLH');
       expect(auth.jwtToken).to.be.a('string').that.equals('g.0.eyJraWQiOiIyMzhiNTUxZmM');
-      auth.fetchJwtToken().then(token => {
+      auth.fetchJwtToken().then((token) => {
         expect(token).to.be.a('string').that.equals('g.0.eyJraWQiOiIyMzhiNTUxZmM');
         done();
       });

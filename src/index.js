@@ -32,10 +32,15 @@ class Nest extends Auth {
      * a new subscriber subscribes. Defaults to 3 seconds.
      */
   constructor(options = {
-    nestId: null, refreshToken: null, apiKey: null, clientId: null,
-  }, snapshotSubscriptionInterval = 5000, eventSubscriptionInterval = 3000) {
+    nestId: null,
+    refreshToken: null,
+    apiKey: null,
+    clientId: null,
+    snapshotInterval: 5000,
+    eventInterval: 3000,
+  }) {
     if (options === null) throw new Error('The options argument cannot be null. It must include properties: nestId, refreshToken, apiKey, clientId');
-    if (Object.keys(options) < 4) throw new Error('You must have at least the following four properties: nestId, refreshToken, apiKey, clientId');
+    if (Object.keys(options).length < 4) throw new Error('You must have at least the following four properties: nestId, refreshToken, apiKey, clientId');
     if (!options.nestId) throw new Error('The property: nestId is not defined.');
     if (!options.refreshToken) throw new Error('The property: refreshToken is not defined.');
     if (!options.apiKey) throw new Error('The property: apiKey is not defined.');
@@ -46,12 +51,12 @@ class Nest extends Auth {
 
     const latestSnapshotSubject = new Subject();
     const eventSubject = new Subject();
-    this._latestSnapshotObservable = interval(options.snapshotSubscriptionInterval || 5000).pipe(
+    this._latestSnapshotObservable = interval(options.snapshotInterval || 5000).pipe(
       switchMap(() => from(this.saveLatestSnapshot())),
       multicast(latestSnapshotSubject),
       refCount(),
     );
-    this._eventsObservable = interval(options.eventSubscriptionInterval || 3000).pipe(
+    this._eventsObservable = interval(options.eventInterval || 3000).pipe(
       switchMap(() => from(this.getEvents(moment().startOf('day').valueOf(), moment().valueOf()))),
       distinctUntilChanged((prevEvents, currEvents) => currEvents.length === prevEvents.length),
       map((events) => events[events.length - 1]),
