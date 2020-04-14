@@ -253,7 +253,7 @@ Here are some helpful examples to get you started.
 ### Fetching Camera Events
 
 You can fetch all the latest events for your camera using the snippet below. You can also specify a start and end
-time as parameters to the `getEvents()` method. For example `nest.getEvents('1586551371619', '1586551374320')`
+time as parameters to the `getEvents()` method. For example `nest.getEvents('1586551371619', '1586551374320')`.
 
 ```javascript
 const Nest = require('nest-cam');
