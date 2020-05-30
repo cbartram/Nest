@@ -17,7 +17,7 @@ to migrate their Nest account's to Google. Google integrated the Nest products u
 Nest devices a one way street.
 
 You can give your Nest data to Google but you can't get it back out of the cloud. This Nest Camera SDK aims
-aims to give developers the freedom and ability to access their own camera feed data in order to continue building great applications.
+to give developers the freedom and ability to access their own camera feed data in order to continue building great applications.
 
 ![nest denial letter](./assets/nest_denied.png)
 
