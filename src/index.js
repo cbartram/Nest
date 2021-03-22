@@ -1,11 +1,10 @@
 const {
   DEBUG,
 } = process.env;
-const fs = require('fs');
 // eslint-disable-next-line no-unused-vars
 const path = require('path');
+const axios = require('axios');
 const { from, interval, Subject } = require('rxjs');
-const request = require('request-promise-native');
 const moment = require('moment');
 const chalk = require('chalk');
 const {
@@ -48,14 +47,9 @@ class Nest extends Auth {
 
     super(options);
     this._id = options.nestId;
+    this._options = options;
 
-    const latestSnapshotSubject = new Subject();
     const eventSubject = new Subject();
-    this._latestSnapshotObservable = interval(options.snapshotInterval || 5000).pipe(
-      switchMap(() => from(this.saveLatestSnapshot())),
-      multicast(latestSnapshotSubject),
-      refCount(),
-    );
     this._eventsObservable = interval(options.eventInterval || 3000).pipe(
       switchMap(() => from(this.getEvents(moment().startOf('day').valueOf(), moment().valueOf()))),
       distinctUntilChanged((prevEvents, currEvents) => currEvents.length === prevEvents.length),
@@ -76,16 +70,15 @@ class Nest extends Auth {
   }
 
   /**
-     * Creates a multicasted subscription to the stream of camera events or camera snapshots for both
-     * motion and sound
+     * Creates a multicasted subscription to the stream of camera events for both motion and sound
      * @param onEvent Function called when a new event is received
      * @param type String Either event or snapshot. This value determines what observable is subscribed to and thus what data
      * is being returned (either event data in JSON or a snapshot image as a byte array)
      * @param onError Function called when an error occurs during the processing of an event
      * @param onComplete Function called when the subscriber no longer wishes to receive events.
      */
-  subscribe(type, onEvent, onError = () => {}, onComplete = () => {}) {
-    DEBUG && console.log(chalk.green('[DEBUG] Creating Subscription for Observable of type:'), chalk.blue(type));
+  subscribe(onEvent, onError = () => {}, onComplete = () => {}) {
+    DEBUG && console.log(chalk.green('[DEBUG] Creating Subscription for Observable of type:'), chalk.blue('Event'));
     const observer = {
       next(data) {
         onEvent(data);
@@ -97,18 +90,34 @@ class Nest extends Auth {
         onComplete();
       },
     };
-    switch (type.toUpperCase()) {
-      case 'EVENT':
-      case 'EVENTS':
-        this._subscribedEventsObservable = this._eventsObservable.subscribe(observer);
-        break;
-      case 'SNAPSHOT':
-      case 'SNAPSHOTS':
-        this._subscribedSnapshotObservable = this._latestSnapshotObservable.subscribe(observer);
-        break;
-      default:
-        console.log(chalk.yellow(`[WARN] No known event listeners to subscribe to for input: ${type}. Use either "event" or "snapshot".`));
-    }
+    this._subscribedEventsObservable = this._eventsObservable.subscribe(observer);
+  }
+
+  /**
+   * Creates a multicasted subscription to the stream of camera images for both motion and sound
+   * @param onEvent Function callback function executed when a new image is received
+   * @param onError Function callback function executed when there is some kind of error.
+   * @param onComplete Function callback function executed when the observer completes its task
+   */
+  subscribeSnapshot(onEvent, onError, onComplete = () => {}) {
+    DEBUG && console.log(chalk.green('[DEBUG] Creating Subscription for Observable of type:'), chalk.blue('Snapshot'));
+    const observer = {
+      next(data) {
+        onEvent(data);
+      },
+      error(e) {
+        onError(e);
+      },
+      complete() {
+        onComplete();
+      },
+    };
+    this._latestSnapshotObservable = interval(this._options.snapshotInterval || 5000).pipe(
+      switchMap(() => from(this.getLatestSnapshot())),
+      multicast(new Subject()),
+      refCount(),
+    );
+    this._subscribedSnapshotObservable = this._latestSnapshotObservable.subscribe(observer);
   }
 
   /**
@@ -153,8 +162,8 @@ class Nest extends Auth {
     try {
       DEBUG && console.log(chalk.green('[DEBUG] Making Http request to retrieve all events to url: '), chalk.blue(options.url), chalk.green('between start time: '), chalk.blue(start), chalk.green('and end time: '), chalk.blue(end));
       return new Promise((res, rej) => {
-        request(options)
-          .then((response) => res(JSON.parse(response)))
+        axios(options)
+          .then((response) => res(response.data))
           .catch((err) => rej(err));
       });
     } catch (e) {
@@ -165,25 +174,25 @@ class Nest extends Auth {
   }
 
   /**
-     * Saves the latest snapshot that is available from the camera to a specified location
-     * @param snapshotPath String the location where the latest snapshot image should be saved.
+     * Retrieves an image from the Nest camera and streams the result to a callback function in the promise (.then(...)).
+     * This does NOT save the image to disk automatically. Users can do what they wish with the image data that is being
+     * returned.
      * @returns {Promise<any>}
      */
-  async saveLatestSnapshot(snapshotPath = path.join(__dirname, '..', 'assets', `snap_${moment().format('YYYY-mm-dd_hh:mm:ss.SSS')}.jpg`)) {
+  async getLatestSnapshot() {
     const options = {
       method: 'GET',
       url: `${this.config.urls.NEXUS_HOST}${this.config.endpoints.getLatestImageEndpoint(this._id)}`,
       headers: {
         Authorization: `Basic ${this.jwtToken}`,
       },
+      responseType: 'stream',
     };
     try {
-      DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to save latest snapshot to the location: '), chalk.blue(snapshotPath));
+      DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to retrieve latest snapshot image.'));
       return new Promise((res, rej) => {
         try {
-          request(options).pipe(fs.createWriteStream(snapshotPath)).on('close', () => {
-            res(snapshotPath);
-          });
+          axios(options).then((response) => res(response.data));
         } catch (err) {
           console.log(chalk.red('[ERROR] Failed to retrieve snapshots from the Nest API: ', err));
           rej(err);
@@ -197,13 +206,14 @@ class Nest extends Auth {
   }
 
   /**
-     * Retrieves a single snapshot image and writes it to disk
+     * Retrieves a single snapshot image from the past given its unique id and streams the result back to a promise based
+     * callback function i.e .then(). This does NOT save the image to disk automatically. Users can do what they wish with the image data that is being
+     * returned.
      * @param id String image id to retrieve. Will be post fixed with *-labs and prefixed with a unix time
      * stamp in seconds.
-     * @param snapshotPath String the path where the image should be saved
      * @returns Promise
      */
-  saveSnapshot(id, snapshotPath = path.join(__dirname, '..', 'assets', `snap_${moment().format('YYYY-mm-dd_hh:mm:ss.SSS')}.jpg`)) {
+  getSnapshot(id) {
     if (!this.jwtToken) {
       throw new Error('JWT token is null or undefined. Call #fetchJwtToken() to retrieve new json web token.');
     }
@@ -213,13 +223,12 @@ class Nest extends Auth {
       headers: {
         Authorization: `Basic ${this.jwtToken}`,
       },
+      responseType: 'stream',
     };
-    DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to save snapshot with the id: '), chalk.blue(id), chalk.green(' to the location: '), chalk.blue(snapshotPath));
+    DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to retrieve snapshot with the id: '), chalk.blue(id));
     return new Promise((res, rej) => {
       try {
-        request(options).pipe(fs.createWriteStream(snapshotPath)).on('close', () => {
-          res(snapshotPath);
-        });
+        axios(options).then((response) => res(response.data));
       } catch (err) {
         console.log(chalk.red('[ERROR] Failed to retrieve snapshots from the Nest API: ', err));
         rej(err);

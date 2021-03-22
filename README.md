@@ -151,7 +151,10 @@ In Charles Proxy:
 
 ![refresh_client_id_charles](./assets/refresh_client_id_charles.png)
 
-Your client id and refresh token are highlighted in the picture above.
+Your client id and refresh token are highlighted in the picture above. **Note:** If you cannot find this request
+in Charles Proxy try signing out of Nest on your iPhone and then signing in again.
+
+If your refresh token isn't displayed check the response body of the request and you should find it there!
 
 #### API Key
 
@@ -285,8 +288,7 @@ const nest = new Nest({
 });
 
 nest.init().then(() => {
-    // Make sure you subscribe to either "event" or "snapshot"!
-    nest.subscribe('event', (event) => {
+    nest.subscribe((event) => {
         ...
     })
 });
@@ -315,6 +317,10 @@ const nest = new Nest({
 
 ### Fetching Latest Image
 
+This method is not subscription based rather it simply finds the latest snapshot image from your nest cam and 
+returns the response back to you in the form of a promise. You can do whatever you would like with the image 
+such as: Uploading to Amazon S3 for processing, saving to disk, etc...
+
 ```javascript
 const Nest = require('nest-cam');
 
@@ -326,8 +332,10 @@ const nest = new Nest({
 });
 
 nest.init().then(() => {
-    nest.saveLatestSnapshot('/path/to/image.jpg').then((path) => {
-        // ... image saved successfully 
+    // Finds the latest snapshot
+    nest.getLatestSnapshot().then((data) => {
+        console.log('Found the latest snapshot!');
+        data.pipe(fs.createWriteStream('/My/Path/to/save/image_3.jpg'));
     });
 });
 ```
@@ -345,14 +353,21 @@ const nest = new Nest({
 });
 
 nest.init().then(() => {
-    // 1586551361-labs comes from an event.id property
-    nest.saveSnapshot('1586551361-labs', '/Path/to/save/file.jpg').then(() => {
-        // image saved successfully
-    })
+    // 1586551361-labs comes from an event.id property found from getEvents() or subscribe()
+    nest.getSnapshot('1586551361-labs', (data) => {
+        console.log('Fetched a specific snapshot image: ', data);
+    });
 });
 ```
 
 ### Streaming Live Camera Images
+
+This is the moment you all have been waiting for! With the Nest package you can stream live images from your Nest camera
+as a reactive stream.
+
+This method will subscribe to image data polling the Nest API on a specified cadence (through the nest options) and 
+return the image data to your code via promise based callback. You can configure where a new image is fetched 
+through the `snapshotInterval` option when you create your `Nest` object.
 
 ```javascript
 const Nest = require('nest-cam');
@@ -362,12 +377,14 @@ const nest = new Nest({
     nestId: "YOUR_NEST_ID",
     refreshToken: "YOUR_REFRESH_TOKEN",
     apiKey: "YOUR_API_KEY",
-    clientId: "YOUR_CLIENT_ID"
+    clientId: "YOUR_CLIENT_ID",
+    snapshotInterval: 20000 // Fetch a new image every 20 seconds 
 });
 
 nest.init().then(() => {
-    nest.subscribe('snapshot', (imageData) => {
-        fs.writeFileSync('/Users/data/image/', imageData);
+    nest.subscribeSnapshot((imageData) => {
+        console.log('Writing latest snapshot image to disk!');
+        data.pipe(fs.createWriteStream('/My/Path/to/save/image_3.jpg'));
     })
 });
 ```

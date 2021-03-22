@@ -1,4 +1,6 @@
-const { describe, it, beforeEach, afterEach } = require('mocha');
+const {
+  describe, it, beforeEach, afterEach,
+} = require('mocha');
 const { expect } = require('chai');
 const nock = require('nock');
 const Nest = require('../src/index');
@@ -11,7 +13,6 @@ describe('Nest Camera Tests', () => {
       clientId: 'fake',
       apiKey: 'fake',
     });
-    expect(nest._latestSnapshotObservable).to.be.a('object').that.does.not.equal(null);
     expect(nest._eventsObservable).to.be.a('object').that.does.not.equal(null);
     done();
   });
@@ -193,7 +194,7 @@ describe('Nest Camera Tests', () => {
     });
 
     try {
-      nest.saveSnapshot(null, null);
+      nest.getSnapshot(null, null);
     } catch (err) {
       expect(err.message).to.be.a('string').that.equals('JWT token is null or undefined. Call #fetchJwtToken() to retrieve new json web token.');
       done();
@@ -327,7 +328,7 @@ describe('Mocking Camera API Tests', () => {
       eventInterval: 500,
     });
 
-    nest.subscribe('snapshot', () => {});
+    nest.subscribe(() => {}, () => {});
     try {
       nest.unsubscribe('snapshot');
       expect(nest._subscribedSnapshotObservable.Subscriber.closed).to.be.a('boolean').that.equals(true);
@@ -416,7 +417,7 @@ describe('Mocking Camera API Tests', () => {
     try {
       await nest.getEvents();
     } catch (err) {
-      expect(err.message).to.be.a('string').that.equals('Error: Failed to retrieve events');
+      expect(err.message).to.be.a('string').that.equals('Failed to retrieve events');
     }
   });
 });
