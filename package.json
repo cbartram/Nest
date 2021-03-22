@@ -1,6 +1,6 @@
 {
   "name": "nest-cam",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Access the Nest API through a Reactive Node.JS Interface",
   "main": "build/main.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "backpack",
     "coverage": "CI=true NODE_ENV=test nyc --reporter=lcovonly --reporter=text ./node_modules/.bin/mocha './test/**.test.js' --timeout 10000 --exit",
     "tag": "PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && git tag $PACKAGE_VERSION && git push --tags",
-    "build": "backpack build"
+    "build": "backpack build && cp ./build/main.js ./index.js"
   },
   "repository": {
     "type": "git",

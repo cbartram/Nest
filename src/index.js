@@ -138,7 +138,7 @@ class Nest extends Auth {
   /**
      * Retrieves a list of recent events that the Nest camera detected. It can take two optional params
      * start and end which are unix timestamps in seconds since epoch and represent a window of time to retrieve
-     * events for.
+     * events over. te
      * @param start integer Unix timestamp in seconds representing the starting period of time to retrieve events for
      * @param end integer Unix timestamp in seconds representing the ending period of time to retrieve events for
      * @returns {Promise<any>}

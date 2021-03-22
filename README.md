@@ -44,8 +44,19 @@ const nest = new Nest({
 });
 
 nest.init().then(() => {
-    nest.saveLatestSnapshot('/User/me/camera/images/my_image.jpg');
-    ...
+    nest.subscribe((eventStream) => {
+        console.log('There was some motion or sound caught on the camera!', eventStream);
+    });
+    // ...or
+    nest.getLatestSnapshot().then(image => {
+        image.pipe(fs.createWriteStream('/My/Path/to/save/image_3.jpg'));
+    });
+    // ... or
+    nest.subscribeSnapshot((image) => {
+       image.pipe(fs.createWriteStream('/My/Path/to/save/image_3.jpg'));
+    }, (error) => {
+        console.log('Oh no there was an error!')
+    })
 });
 ```
 
