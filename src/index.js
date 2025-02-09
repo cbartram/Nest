@@ -35,6 +35,7 @@ class Nest extends Auth {
     refreshToken: null,
     apiKey: null,
     clientId: null,
+    nexusHost: "https://nexusapi-us1.dropcam.com", // Default value
     snapshotInterval: 5000,
     eventInterval: 3000,
   }) {
@@ -153,8 +154,10 @@ class Nest extends Auth {
     if (end) query += `&end_time=${end}`;
 
     const options = {
-      method: 'GET',
-      url: `${this.config.urls.NEXUS_HOST}${this.config.endpoints.getEventsEndpoint(this._id)}${query}`,
+      method: "GET",
+      url: `${this._options.nexusHost}${this.config.endpoints.getEventsEndpoint(
+        this._id
+      )}${query}`,
       headers: {
         Authorization: `Basic ${this.jwtToken}`,
       },
@@ -182,7 +185,7 @@ class Nest extends Auth {
   async getLatestSnapshot() {
     const options = {
       method: 'GET',
-      url: `${this.config.urls.NEXUS_HOST}${this.config.endpoints.getLatestImageEndpoint(this._id)}`,
+      url: `${this._options.nexusHost}${this.config.endpoints.getLatestImageEndpoint(this._id)}`,
       headers: {
         Authorization: `Basic ${this.jwtToken}`,
       },
@@ -218,12 +221,16 @@ class Nest extends Auth {
       throw new Error('JWT token is null or undefined. Call #fetchJwtToken() to retrieve new json web token.');
     }
     const options = {
-      method: 'GET',
-      url: `${this.config.urls.NEXUS_HOST}${this.config.endpoints.getSnapshotEndpoint(this._id)}${id}?crop_type=timeline&width=300`,
+      method: "GET",
+      url: `${
+        this._options.nexusHost
+      }${this.config.endpoints.getSnapshotEndpoint(
+        this._id
+      )}${id}?crop_type=timeline&width=300`,
       headers: {
         Authorization: `Basic ${this.jwtToken}`,
       },
-      responseType: 'stream',
+      responseType: "stream",
     };
     DEBUG && console.log(chalk.green('[DEBUG] Making Http Request to retrieve snapshot with the id: '), chalk.blue(id));
     return new Promise((res, rej) => {
