@@ -15,7 +15,7 @@
     "url": "git+https://github.com/cbartram/Nest.git"
   },
   "dependencies": {
-    "axios": "^0.28.0",
+    "axios": "^1.12.0",
     "backpack-core": "^0.8.4",
     "chalk": "^4.0.0",
     "dotenv": "^8.2.0",
